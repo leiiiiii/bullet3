@@ -1,12 +1,10 @@
-import sys
-sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_envs/bullet')
-print ('ff',sys.path)
-#from pybullet_envs.bullet import ne
-# from neobotixschunkGymEnv import NeobotixSchunkGymEnv
-'''
-def main():
+from ..bullet import neobotixschunkGymEnv
+# import sys
+# sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_envs')
+# print ('ff',sys.path)
 
-	environment = neobotixschunkGymEnvTest.NeobotixSchunkGymEnv(renders=True,isDiscrete=False)
+def main():
+    environment = neobotixschunkGymEnv.NeobotixSchunkGymEnv(renders=True,isDiscrete=False)
 
 
     leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-50,50,1)
@@ -19,21 +17,21 @@ def main():
     joint_6_Slider=environment._p.addUserDebugParameter("arm_6_joint",-2.07,2.07,0)
     joint_7_Slider=environment._p.addUserDebugParameter("arm_7_joint",-2.94,2.94,0)
 
-    leftwheelVelocity = environment._p.readUserDebugParameter(leftwheelVelocitySlider)
-    rightwheelVelocity = environment._p.readUserDebugParameter(rightwheelVelocitySlider)
-    joint_1 = environment._p.readUserDebugParameter(joint_1_Slider)
-    joint_2 = environment._p.readUserDebugParameter(joint_2_Slider)
-    joint_3 = environment._p.readUserDebugParameter(joint_3_Slider)
-    joint_4 = environment._p.readUserDebugParameter(joint_4_Slider)
-    joint_5 = environment._p.readUserDebugParameter(joint_5_Slider)
-    joint_6 = environment._p.readUserDebugParameter(joint_6_Slider)
-    joint_7 = environment._p.readUserDebugParameter(joint_7_Slider)
 
-    action=[leftwheelVelocity,rightwheelVelocity,joint_1,joint_2,joint_3,joint_4,joint_5,joint_6,joint_7]
+    while(1):
+        leftwheelVelocity = environment._p.readUserDebugParameter(leftwheelVelocitySlider)
+        rightwheelVelocity = environment._p.readUserDebugParameter(rightwheelVelocitySlider)
+        joint_1 = environment._p.readUserDebugParameter(joint_1_Slider)
+        joint_2 = environment._p.readUserDebugParameter(joint_2_Slider)
+        joint_3 = environment._p.readUserDebugParameter(joint_3_Slider)
+        joint_4 = environment._p.readUserDebugParameter(joint_4_Slider)
+        joint_5 = environment._p.readUserDebugParameter(joint_5_Slider)
+        joint_6 = environment._p.readUserDebugParameter(joint_6_Slider)
+        joint_7 = environment._p.readUserDebugParameter(joint_7_Slider)
+        action = [leftwheelVelocity, rightwheelVelocity, joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7]
 
-    state, reward, done, info = environment.step(action)
-	obs = environment.getExtendedObservation()
+        state, reward, done, info = environment.step(action)
+        obs = environment.getExtendedObservation()
 
 if __name__=="__main__":
     main()
-'''
