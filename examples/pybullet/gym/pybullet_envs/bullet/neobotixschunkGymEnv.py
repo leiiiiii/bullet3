@@ -1,11 +1,11 @@
 import os, inspect
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-print("current_dir=" + currentdir)
+#print("current_dir=" + currentdir)
 os.sys.path.insert(0, currentdir)
 
 import sys
-sys.path.append('/home/lei/Documents/Projektpraktikum/bullet3/examples/pybullet/gym/pybullet_envs')
+sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
 
 import math
 import gym
@@ -13,7 +13,7 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 import pybullet as p
-from . import neobotixschunk
+import neobotixschunk
 import time
 import random
 import pybullet_data
@@ -97,7 +97,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         zpos = random.uniform(0.5, 1.4)
         self.goal = [xpos, ypos, zpos]
 
-        self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "spheregoal.urdf"), xpos, ypos, zpos)
+        self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "sphere2.urdf"), xpos, ypos, zpos)
 
         self._neobotixschunk = neobotixschunk.NeobotixSchunk(urdfRootPath=self._urdfRoot, timeStep=self._timeStep)
         self._envStepCounter = 0
