@@ -1,11 +1,8 @@
 import os, inspect
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-#print("current_dir=" + currentdir)
-os.sys.path.insert(0, currentdir)
-
-import sys
-sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
+#
+# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+# print("current_dir=" + currentdir)
+# os.sys.path.insert(0, currentdir)
 
 import math
 import gym
@@ -13,10 +10,13 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 import pybullet as p
-import neobotixschunk
+# from . import neobotixschunk
 import time
-import random
+import sys
+sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
 import pybullet_data
+import random
+from . import neobotixschunk
 from pkg_resources import parse_version
 
 largeValObservation = 100
