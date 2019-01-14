@@ -5,3 +5,4 @@ from pybullet_envs.bullet.racecarGymEnv import RacecarGymEnv
 from pybullet_envs.bullet.racecarZEDGymEnv import RacecarZEDGymEnv
 from pybullet_envs.bullet.kukaGymEnv import KukaGymEnv
 from pybullet_envs.bullet.kukaCamGymEnv import KukaCamGymEnv
+from pybullet_envs.bullet.neobotixschunkGymEnv import NeobotixSchunkGymEnv

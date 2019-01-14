@@ -10,3 +10,4 @@ from . import enjoy_TF_Walker2DBulletEnv_v0_2017may
 from . import kukaGymEnvTest
 from . import racecarGymEnvTest
 from . import racecarZEDGymEnvTest
+from . import neobotixschunkGymEnvTest
