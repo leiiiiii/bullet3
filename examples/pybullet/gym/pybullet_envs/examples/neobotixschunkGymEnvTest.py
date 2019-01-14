@@ -1,13 +1,12 @@
-import os, inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(os.path.dirname(currentdir))
-os.sys.path.insert(0,parentdir)
-
-from pybullet_envs.bullet.neobotixschunkGymEnv import NeobotixSchunkGymEnv
-
+import sys
+sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_envs/bullet')
+print ('ff',sys.path)
+#from pybullet_envs.bullet import ne
+# from neobotixschunkGymEnv import NeobotixSchunkGymEnv
+'''
 def main():
 
-	environment = NeobotixSchunkGymEnv(renders=True,isDiscrete=False)
+	environment = neobotixschunkGymEnvTest.NeobotixSchunkGymEnv(renders=True,isDiscrete=False)
 
 
     leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-50,50,1)
@@ -37,3 +36,4 @@ def main():
 
 if __name__=="__main__":
     main()
+'''
