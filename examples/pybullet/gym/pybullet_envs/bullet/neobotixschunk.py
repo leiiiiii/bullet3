@@ -1,8 +1,8 @@
 import os,  inspect
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(os.path.dirname(currentdir))
-os.sys.path.insert(0,'/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/')
+#
+# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+# parentdir = os.path.dirname(os.path.dirname(currentdir))
+# os.sys.path.insert(0,'/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/')
 import sys
 sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
 
