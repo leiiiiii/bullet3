@@ -16,7 +16,7 @@ import sys
 sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
 import pybullet_data
 import random
-from . import neobotixschunk
+import neobotixschunk
 from pkg_resources import parse_version
 
 largeValObservation = 100
@@ -32,7 +32,7 @@ class NeobotixSchunkGymEnv(gym.Env):
     }
 
     def __init__(self,
-                 urdfRoot=pybullet_data.getDataPath(),
+                 urdfRoot='/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data',
                  actionRepeat=50,
                  isEnableSelfCollision=True,
                  isDiscrete=False,
@@ -97,8 +97,8 @@ class NeobotixSchunkGymEnv(gym.Env):
         zpos = random.uniform(0.5, 1.4)
         self.goal = [xpos, ypos, zpos]
 
-        self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "sphere2.urdf"), xpos, ypos, zpos)
-
+        self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "sphere_small.urdf"), xpos, ypos, zpos)
+        #private variante
         self._neobotixschunk = neobotixschunk.NeobotixSchunk(urdfRootPath=self._urdfRoot, timeStep=self._timeStep)
         self._envStepCounter = 0
         p.stepSimulation()
