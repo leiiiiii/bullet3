@@ -38,7 +38,7 @@ class NeobotixSchunkGymEnv(gym.Env):
                  isDiscrete=False,
                  renders=False,
                  maxSteps=1000):
-        print("init")
+        # print("init")
         self._timeStep = 0.01
         self._urdfRoot = urdfRoot
         self._actionRepeat = actionRepeat
@@ -91,7 +91,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         p.setPhysicsEngineParameter(numSolverIterations=150)
 
         p.loadURDF(os.path.join(self._urdfRoot, "plane.urdf"), [0, 0, 0])
-
+        # print 'path', self._urdfRoot
         xpos = random.uniform(-1, 1)
         ypos = random.uniform(-1, 1)
         zpos = random.uniform(0.5, 1.4)
@@ -150,7 +150,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         #calculate the linear algebra normiert distance
         dis = np.linalg.norm(disvec)
 
-        if dis < 0.1:  # (actualEndEffectorPos[2] <= -0.43):
+        if dis < 0.1:
             self.terminated = 1
             self._observation = self.getExtendedObservation()
             print('terminate:', self._observation, dis, self.goal)

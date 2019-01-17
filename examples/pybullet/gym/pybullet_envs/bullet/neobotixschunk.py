@@ -59,7 +59,7 @@ class NeobotixSchunk:
     def getObservation(self):
         observation = []
         state = p.getLinkState(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex)
-        print(state)
+        # print(state)
         pos = state[0]
         orn = state[1]
         euler = p.getEulerFromQuaternion(orn)
@@ -73,7 +73,7 @@ class NeobotixSchunk:
         targetVelocityL = action[0]
         targetVelocityR = action[1]
         targetvelocity=[targetVelocityL,targetVelocityR]
-        print('targetVelocity=',targetvelocity)
+        # print('targetVelocity=',targetvelocity)
         targetangle_1=action[2]
         targetangle_2 = action[3]
         targetangle_3 = action[4]
@@ -82,7 +82,7 @@ class NeobotixSchunk:
         targetangle_6 = action[7]
         targetangle_7 = action[8]
         targetangle = [targetangle_1,targetangle_2,targetangle_3,targetangle_4,targetangle_5,targetangle_6,targetangle_7]
-        print('targetAngle=', targetangle)
+        # print('targetAngle=', targetangle)
         for motor in self.wheels:
             p.setJointMotorControl2(self.neobotixschunkUid, motor,p.VELOCITY_CONTROL,
                                           targetVelocity=targetvelocity[motor], force=self.maxForce)

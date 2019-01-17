@@ -6,9 +6,9 @@ import neobotixschunkGymEnv
 
 def main():
 
-    environment = neobotixschunkGymEnv.NeobotixSchunkGymEnv(renders=True,isDiscrete=False)
-    leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-50,50,1)
-    rightwheelVelocitySlider = environment._p.addUserDebugParameter("right_wheel_Velocity",-50,50,1)
+    environment = neobotixschunkGymEnv.NeobotixSchunkGymEnv(renders=True,isDiscrete=False, maxSteps=100000000)
+    leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-1,1,0)
+    rightwheelVelocitySlider = environment._p.addUserDebugParameter("right_wheel_Velocity",-1,1,0)
     joint_1_Slider=environment._p.addUserDebugParameter("arm_1_joint",-3.1215926,3.1215926,0)
     joint_2_Slider=environment._p.addUserDebugParameter("arm_2_joint",-2.12,2.12,0)
     joint_3_Slider=environment._p.addUserDebugParameter("arm_3_joint",-3.1215926,3.1215926,0)
@@ -18,8 +18,8 @@ def main():
     joint_7_Slider=environment._p.addUserDebugParameter("arm_7_joint",-2.94,2.94,0)
     actionIds = [leftwheelVelocitySlider, rightwheelVelocitySlider, joint_1_Slider, joint_2_Slider, joint_3_Slider, joint_4_Slider, joint_5_Slider, joint_6_Slider, joint_7_Slider]
 
-
-    while(1):
+    done = 0
+    while(not done):
         # leftwheelVelocity = environment._p.readUserDebugParameter(leftwheelVelocitySlider)
         # rightwheelVelocity = environment._p.readUserDebugParameter(rightwheelVelocitySlider)
         # joint_1 = environment._p.readUserDebugParameter(joint_1_Slider)
@@ -35,6 +35,7 @@ def main():
         for actionId in actionIds:
             action.append(environment._p.readUserDebugParameter(actionId))
         state, reward, done, info = environment.step(action)
+        print 'ob', state
         obs = environment.getExtendedObservation()
 
 if __name__=="__main__":
