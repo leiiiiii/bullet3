@@ -74,18 +74,32 @@ class NeobotixSchunk:
         targetVelocityR = action[1]
         targetvelocity=[targetVelocityL,targetVelocityR]
         # print('targetVelocity=',targetvelocity)
-        targetangle_1=action[2]
-        targetangle_2 = action[3]
-        targetangle_3 = action[4]
-        targetangle_4 = action[5]
-        targetangle_5 = action[6]
-        targetangle_6 = action[7]
-        targetangle_7 = action[8]
-        targetangle = [targetangle_1,targetangle_2,targetangle_3,targetangle_4,targetangle_5,targetangle_6,targetangle_7]
+        djoint_1 = action[2]
+        djoint_2 = action[3]
+        djoint_3 = action[4]
+        djoint_4 = action[5]
+        djoint_5 = action[6]
+        djoint_6 = action[7]
+        djoint_7 = action[8]
+        dae = []
+        for joint in self.joints:
+            self.Jointstate=p.getJointState(self.neobotixschunkUid,joint)
+            self.jointstate=self.Jointstate[0]
+            dae.append(self.jointstate)
+        # print('dae',dae)
+        da_1 = djoint_1+dae[0]
+        da_2 = djoint_2+dae[1]
+        da_3 = djoint_3+dae[2]
+        da_4 = djoint_4+dae[3]
+        da_5 = djoint_5+dae[4]
+        da_6 = djoint_6+dae[5]
+        da_7 = djoint_7+dae[6]
+        self.jointstate= [da_1,da_2,da_3,da_4,da_5,da_6,da_7]
+
         # print('targetAngle=', targetangle)
         for motor in self.wheels:
             p.setJointMotorControl2(self.neobotixschunkUid, motor,p.VELOCITY_CONTROL,
                                           targetVelocity=targetvelocity[motor], force=self.maxForce)
         for motor_2 in self.joints:
             p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
-                                          targetPosition=targetangle[motor_2-6],force=self.maxForce)
+                                          targetPosition=self.jointstate[motor_2-6],force=self.maxForce)
