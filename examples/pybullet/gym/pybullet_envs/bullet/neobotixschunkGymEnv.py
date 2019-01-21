@@ -37,7 +37,8 @@ class NeobotixSchunkGymEnv(gym.Env):
                  isEnableSelfCollision=True,
                  isDiscrete=False,
                  renders=False,
-                 maxSteps=1000):
+                 maxSteps=1000,
+                 rewardtype='rdense'):
         # print("init")
         self._timeStep = 0.01
         self._urdfRoot = urdfRoot
@@ -46,6 +47,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._observation = []
         self._envStepCounter = 0
         self._renders = renders
+        self._rewardtype = rewardtype
         self._maxSteps = maxSteps
         self._isDiscrete = isDiscrete
         self.terminated = 0
@@ -53,6 +55,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._cam_yaw = 180
         self._cam_pitch = -40
         self._p = p
+        self._dis_vor = 100
         if self._renders:
             cid = p.connect(p.SHARED_MEMORY)
             if (cid < 0):
@@ -160,12 +163,26 @@ class NeobotixSchunkGymEnv(gym.Env):
 
     def _reward(self):
     # rewards is accuracy of target position
-        closestPoints = self._p.getClosestPoints(self._neobotixschunk.neobotixschunkUid, self.goalUid, 1000,self._neobotixschunk.neobotixschunkEndEffectorIndex,-1)
-
-        numPt = len(closestPoints)
-        reward = -1000
-        if (numPt > 0):
-            reward = -closestPoints[0][8]  # contact distance
+    #     closestPoints = self._p.getClosestPoints(self._neobotixschunk.neobotixschunkUid, self.goalUid, 1000,self._neobotixschunk.neobotixschunkEndEffectorIndex,-1)
+    #
+    #     numPt = len(closestPoints)
+    #     reward = -1000
+    #     if (numPt > 0):
+    #         reward = -closestPoints[0][8]  # contact distance
+    #     return reward
+        state = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
+        actualEndEffectorPos = state[0]
+        disvec = [x - y for x, y in zip(actualEndEffectorPos, self.goal)]
+        self.dis = np.linalg.norm(disvec)
+        delta_dis = self.dis - self._dis_vor
+        self._dis_vor = self.dis
+        if self._rewardtype == 'rdense':
+            reward = -self.dis - np.linalg.norm(self._actions)
+        elif self._rewardtype == 'rsparse':
+            if delta_dis > 0:
+                reward = 0
+            else:
+                reward = 1
         return reward
 
     def _render(self, mode='human', close=False):

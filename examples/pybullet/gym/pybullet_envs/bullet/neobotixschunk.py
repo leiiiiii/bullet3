@@ -18,13 +18,20 @@ class NeobotixSchunk:
     def __init__(self, urdfRootPath='/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data/', timeStep=0.01):
         self.urdfRootPath = urdfRootPath
         self.timeStep = timeStep
-        self.maxVelocity = .35
+        self.maxVelocity = 1.5
         self.maxForce = 100
         self.useSimulation = 1
         self.useNullSpace = 0
         self.useOrientation = 1
         self.neobotixschunkEndEffectorIndex = 13
         self.reset()
+
+        # lower limits for null space
+        self.ll = [-3.1215926, -2.12, -3.1215926, -2.16, -3.1215926, -2.07, -2.94]
+        # upper limits for null space
+        self.ul = [3.1215926, 2.12, 3.1215926, 2.16, 3.1215926, 2.07, 2.94]
+        # joint ranges for null space
+        self.jr = [6.24, 4.24, 6.24, 4.32, 6.24, 4.14, 5.88]
         # joint damping coefficents
         self.jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
@@ -70,9 +77,9 @@ class NeobotixSchunk:
         return observation
 
     def applyAction(self, action):
-        targetVelocityL = action[0]
-        targetVelocityR = action[1]
-        targetvelocity=[targetVelocityL,targetVelocityR]
+        dtargetVelocityL = action[0]
+        dtargetVelocityR = action[1]
+        targetvelocity=[dtargetVelocityL,dtargetVelocityR]
         # print('targetVelocity=',targetvelocity)
         djoint_1 = action[2]
         djoint_2 = action[3]
@@ -82,10 +89,21 @@ class NeobotixSchunk:
         djoint_6 = action[7]
         djoint_7 = action[8]
         dae = []
+        dwe = []
+        for joint in self.wheels:
+            self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
+            self.wheelstate = self.Wheelstate[1]
+            dwe.append(self.wheelstate)
+
+        dwl = dtargetVelocityL+dwe[0]
+        dwr = dtargetVelocityR+dwe[1]
+        self.wheelstate= [dwl,dwr]
+
         for joint in self.joints:
             self.Jointstate=p.getJointState(self.neobotixschunkUid,joint)
             self.jointstate=self.Jointstate[0]
             dae.append(self.jointstate)
+
         # print('dae',dae)
         da_1 = djoint_1+dae[0]
         da_2 = djoint_2+dae[1]
@@ -99,7 +117,7 @@ class NeobotixSchunk:
         # print('targetAngle=', targetangle)
         for motor in self.wheels:
             p.setJointMotorControl2(self.neobotixschunkUid, motor,p.VELOCITY_CONTROL,
-                                          targetVelocity=targetvelocity[motor], force=self.maxForce)
+                                          targetVelocity=self.wheelstate[motor], force=self.maxForce)
         for motor_2 in self.joints:
             p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
                                           targetPosition=self.jointstate[motor_2-6],force=self.maxForce)

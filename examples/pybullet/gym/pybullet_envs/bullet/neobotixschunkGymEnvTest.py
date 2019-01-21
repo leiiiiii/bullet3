@@ -8,8 +8,9 @@ def main():
 
     environment = neobotixschunkGymEnv.NeobotixSchunkGymEnv(renders=True,isDiscrete=False, maxSteps=100000000)
     dv = 0.05
-    leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-1,1,0)
-    rightwheelVelocitySlider = environment._p.addUserDebugParameter("right_wheel_Velocity",-1,1,0)
+    dtheta = 1
+    leftwheelVelocitySlider = environment._p.addUserDebugParameter("left_wheel_Velocity",-dtheta,dtheta,0.02)
+    rightwheelVelocitySlider = environment._p.addUserDebugParameter("right_wheel_Velocity",-dtheta,dtheta,0.02)
     joint_1_Slider=environment._p.addUserDebugParameter("arm_1_joint",-dv,dv,0)
     joint_2_Slider=environment._p.addUserDebugParameter("arm_2_joint",-dv,dv,0)
     joint_3_Slider=environment._p.addUserDebugParameter("arm_3_joint",-dv,dv,0)
