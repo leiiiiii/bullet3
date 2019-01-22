@@ -48,6 +48,9 @@ class NeobotixSchunk:
 
         initial_wheelVel=[0, 0]
         initial_jointstate=[0, 0, 0, 0, 0, 0, 0]
+        self.basevelocity = 0
+        self.baseangulervelocity = 0
+
 
         for wheel in self.wheels:
             p.resetJointState(self.neobotixschunkUid, wheel,initial_wheelVel[wheel])
@@ -76,11 +79,23 @@ class NeobotixSchunk:
 
         return observation
 
+    def check_baseV(self, base_vel, delta_bv):
+        if (abs(base_vel) > 1.5):
+            base_vel = base_vel - delta_bv
+        return base_vel
+
+    def check_baseA(self, base_ang, delta_ba):
+        if (abs(base_ang) > 2):
+            base_ang = base_ang - delta_ba
+        return base_ang
+
     def applyAction(self, action):
-        dtargetVelocityL = action[0]
-        dtargetVelocityR = action[1]
-        targetvelocity=[dtargetVelocityL,dtargetVelocityR]
+        # dtargetVelocityL = action[0]
+        # dtargetVelocityR = action[1]
+        # targetvelocity=[dtargetVelocityL,dtargetVelocityR]
         # print('targetVelocity=',targetvelocity)
+        basevelocity = action[0]
+        baseangulervelocity = action[1]
         djoint_1 = action[2]
         djoint_2 = action[3]
         djoint_3 = action[4]
@@ -88,17 +103,27 @@ class NeobotixSchunk:
         djoint_5 = action[6]
         djoint_6 = action[7]
         djoint_7 = action[8]
+
+        self.basevelocity = self.basevelocity + basevelocity
+        self.baseangulervelocity = self.baseangulervelocity + baseangulervelocity
+
+        self.basevelocity = self.check_baseV(self.basevelocity, basevelocity)
+        self.baseangulervelocity = self.check_baseA(self.baseangulervelocity, baseangulervelocity)
+
+        self.wheelVelR = ( self.basevelocity + 0.2535 * self.baseangulervelocity) / 0.13
+        self.wheelVelL = ( self.basevelocity - 0.2535 * self.baseangulervelocity) / 0.13
+
+        self.wheelstate = [self.wheelVelL , self.wheelVelR]
+        # dwe = []
+        # for joint in self.wheels:
+        #     self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
+        #     self.wheelstate = self.Wheelstate[1]
+        #     dwe.append(self.wheelstate)
+
+        # dwl = dtargetVelocityL+dwe[0]
+        # dwr = dtargetVelocityR+dwe[1]
+        # self.wheelstate= [dwl,dwr]
         dae = []
-        dwe = []
-        for joint in self.wheels:
-            self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
-            self.wheelstate = self.Wheelstate[1]
-            dwe.append(self.wheelstate)
-
-        dwl = dtargetVelocityL+dwe[0]
-        dwr = dtargetVelocityR+dwe[1]
-        self.wheelstate= [dwl,dwr]
-
         for joint in self.joints:
             self.Jointstate=p.getJointState(self.neobotixschunkUid,joint)
             self.jointstate=self.Jointstate[0]
