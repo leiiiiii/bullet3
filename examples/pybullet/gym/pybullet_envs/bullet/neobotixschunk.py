@@ -66,6 +66,7 @@ class NeobotixSchunk:
     def getObservationDimension(self):
         return len(self.getObservation())
 
+    #get the endeffector position and orientation(euler angles)
     def getObservation(self):
         observation = []
         state = p.getLinkState(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex)

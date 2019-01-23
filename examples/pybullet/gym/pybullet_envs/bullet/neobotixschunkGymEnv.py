@@ -108,15 +108,24 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._observation = self.getExtendedObservation()
         return np.array(self._observation)
 
+    #return the endeffector vec9 [position(vec3),orientation(euler angles)(vec3),goalPosInEndeffector(vec3)],distance, goal position
     def getExtendedObservation(self):
         self._observation = self._neobotixschunk.getObservation()
         EndeffectorState = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
+        # print('EndeffectorState',EndeffectorState)
+        # show the position of endeffector, is vec3
         EndeffectorrPos = EndeffectorState[0]
+        #show the orientation of endeffector, is vec4 in quaternion
         EndeffectorOrn = EndeffectorState[1]
+        # returns the position(vec3) and quaternion orientation(vec4)
         goalPos, goalOrn = p.getBasePositionAndOrientation(self.goalUid)
+        #show the inverse transformed matrix
         invEndeffectorPos, invEndeffectorOrn = self._p.invertTransform(EndeffectorrPos, EndeffectorOrn)
+        #multiply the transformed matrix and goal position
         goalPosInEndeffector, goalOrnInEndeffector = self._p.multiplyTransforms(invEndeffectorPos, invEndeffectorOrn, goalPos, goalOrn)
+        # print('goalPosInEndeffector',goalPosInEndeffector)
         goalInEndeffectorPosXYEulZ = [goalPosInEndeffector[0], goalPosInEndeffector[1], goalPosInEndeffector[2]]
+        #at end of list is relative coordinate system (goal location in endeffector position)
         self._observation.extend(list(goalInEndeffectorPosXYEulZ))
         return self._observation
 
