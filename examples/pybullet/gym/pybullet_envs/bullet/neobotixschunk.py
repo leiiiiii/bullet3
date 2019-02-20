@@ -19,11 +19,14 @@ class NeobotixSchunk:
         self.urdfRootPath = urdfRootPath
         self.timeStep = timeStep
         self.maxVelocity = 1.5
+        self.maxAng=2
         self.maxForce = 100
         self.useSimulation = 1
         self.useNullSpace = 0
         self.useOrientation = 1
         self.neobotixschunkEndEffectorIndex = 13
+        self.wheels = [0, 1]
+        self.joints = [6, 7, 8, 9, 10, 11, 12]
         self.reset()
 
         # lower limits for null space
@@ -43,8 +46,6 @@ class NeobotixSchunk:
         for i in range(p.getNumJoints(self.neobotixschunkUid)):
             print(p.getJointInfo(self.neobotixschunkUid, i))
 
-        self.wheels = [0, 1]
-        self.joints = [6, 7, 8, 9, 10, 11, 12]
 
         initial_wheelVel=[0, 0]
         initial_jointstate=[0, 0, 0, 0, 0, 0, 0]
@@ -60,8 +61,8 @@ class NeobotixSchunk:
             p.resetJointState(self.neobotixschunkUid,joint,initial_jointstate[joint-6])
             p.setJointMotorControl2(self.neobotixschunkUid, joint, p.POSITION_CONTROL,targetPosition=initial_jointstate[joint-6], force=self.maxForce)
 
-    def getActionDimension(self):
-        return 5
+    # def getActionDimension(self):
+    #     return 5
 
     def getObservationDimension(self):
         return len(self.getObservation())
@@ -74,19 +75,25 @@ class NeobotixSchunk:
         pos = state[0]
         orn = state[1]
         euler = p.getEulerFromQuaternion(orn)
-
         observation.extend(list(pos))
         observation.extend(list(euler))
+
+        base = p.getBasePositionAndOrientation(self.neobotixschunkUid)
+        basepos= base[0]
+        baseorn= base[1]
+        baseeul = p.getEulerFromQuaternion(baseorn)
+        observation.extend(list(basepos))
+        observation.extend(list(baseeul))
 
         return observation
 
     def check_baseV(self, base_vel, delta_bv):
-        if (abs(base_vel) > 1.5):
+        if (abs(base_vel) > self.maxVelocity):
             base_vel = base_vel - delta_bv
         return base_vel
 
     def check_baseA(self, base_ang, delta_ba):
-        if (abs(base_ang) > 2):
+        if (abs(base_ang) > self.maxAng):
             base_ang = base_ang - delta_ba
         return base_ang
 
