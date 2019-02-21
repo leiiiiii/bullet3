@@ -93,6 +93,9 @@ class NeobotixSchunk:
         observation.extend(list(basepos))
         observation.extend(list(baseeul))
 
+        print("observation")
+        print(observation)
+
         return observation
 
     def check_baseV(self, base_vel, delta_bv):
@@ -231,8 +234,8 @@ class NeobotixSchunk:
                                                               jointDamping=self.jd)
                 else:
                     jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position)
-        print("jointPoses")
-        print(jointPoses)
+        # print("jointPoses")
+        # print(jointPoses)
 
         for motor in self.wheels:
             p.setJointMotorControl2(self.neobotixschunkUid, motor, p.VELOCITY_CONTROL,

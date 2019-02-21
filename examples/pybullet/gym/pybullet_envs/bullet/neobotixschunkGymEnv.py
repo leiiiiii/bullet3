@@ -10,14 +10,19 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 import pybullet as p
+import pyglet
 # from . import neobotixschunk
+# import pybullet_data
 import time
 import sys
 sys.path.append('/home/lei/Documents/Projektpraktikum/Pybullet/bullet3/examples/pybullet/gym/pybullet_data')
-import pybullet_data
+
 import random
 import neobotixschunk
 from pkg_resources import parse_version
+
+pyglet.clock.set_fps_limit(10000)
+
 
 largeValObservation = 100
 
@@ -50,36 +55,38 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._rewardtype = rewardtype
         self._maxSteps = maxSteps
         self._isDiscrete = isDiscrete
-        self.terminated = 0
+        self._terminated = 0
         self._cam_dist = 1.3
         self._cam_yaw = 180
         self._cam_pitch = -40
         self._p = p
         self._dis_vor = 100
+        self._count = 0
         if self._renders:
             cid = p.connect(p.SHARED_MEMORY)
             if (cid < 0):
                 cid = p.connect(p.GUI)
-            p.resetDebugVisualizerCamera(1.3, 180, -41, [0.52, -0.2, -0.33])
+            p.resetDebugVisualizerCamera(self._cam_dist, self._cam_yaw, self._cam_pitch, [0.52, -0.2, -0.33])
         else:
             p.connect(p.DIRECT)
         self._seed()
         self.reset()
-        observationDim = len(self.getExtendedObservation())
+        observation_dim = len(self.getExtendedObservation())
         # print("observationDim")
         # print(observationDim)
         # observation_high = np.array([np.finfo(np.float32).max] * observationDim)
 
-        observation_high = np.array([largeValObservation] * observationDim)
+        observation_high = np.array([largeValObservation] * observation_dim)
 
-        if (isDiscrete):
+        if (self._isDiscrete):
             self.action_space = spaces.Discrete(9)
         else:
             action_dim = 5
             self._action_bound = 1
             action_high = np.array([self._action_bound] * action_dim)
-            self.action_space = spaces.Box(-action_high, action_high)
-        self.observation_space = spaces.Box(-observation_high, observation_high)
+            self.action_space = spaces.Box(low=-action_high, high=action_high, dtype=np.float32)
+
+        self.observation_space = spaces.Box(low=-observation_high, high=observation_high, dtype=np.float32)
         self.viewer = None
 
     def _seed(self, seed=None):
@@ -90,15 +97,18 @@ class NeobotixSchunkGymEnv(gym.Env):
         self.terminated = 0
         p.resetSimulation()
         p.setTimeStep(self._timeStep)
-        self._p.setGravity(0, 0, -10)
+        self._p.setGravity(0, 0, -9.8)
         p.setPhysicsEngineParameter(numSolverIterations=150)
 
         p.loadURDF(os.path.join(self._urdfRoot, "plane.urdf"), [0, 0, 0])
         # print 'path', self._urdfRoot
-        xpos = random.uniform(-1, 1)
-        ypos = random.uniform(-1, 1)
-        zpos = random.uniform(0.5, 1.4)
-        self.goal = [xpos, ypos, zpos]
+        d_space_scale = len(str(abs(self._count))) * 0.5
+        print('scale here: ', self._count, d_space_scale, self._maxSteps)
+
+        xpos = np.random.uniform(-d_space_scale, d_space_scale)+0.20
+        ypos = np.random.uniform(-d_space_scale, d_space_scale)
+        zpos = np.random.uniform(0.4, 1.3)
+        self.goal = np.array([xpos, ypos, zpos])
 
         self.goalUid = p.loadURDF(os.path.join(self._urdfRoot, "sphere_small.urdf"), xpos, ypos, zpos)
         #private variante
@@ -106,17 +116,24 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._envStepCounter = 0
         p.stepSimulation()
         self._observation = self.getExtendedObservation()
+
+        eedisvec = np.subtract(self._observation[0:3], self.goal)
+        self.dis_init = np.linalg.norm(eedisvec)
+
         return np.array(self._observation)
 
     #return the endeffector vec9 [position(vec3),orientation(euler angles)(vec3),goalPosInEndeffector(vec3)],distance, goal position
     def getExtendedObservation(self):
         self._observation = self._neobotixschunk.getObservation()
         EndeffectorState = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
+        # EndeffectorState= self._observation[0:3]
         # print('EndeffectorState',EndeffectorState)
         # show the position of endeffector, is vec3
-        EndeffectorrPos = EndeffectorState[0]
+        EndeffectorrPos = self._observation[0:3]
+        # print('EndeffectorrPos',EndeffectorrPos)
         #show the orientation of endeffector, is vec4 in quaternion
         EndeffectorOrn = EndeffectorState[1]
+        # print('EndeffectorOrn', EndeffectorOrn)
         # returns the position(vec3) and quaternion orientation(vec4)
         goalPos, goalOrn = p.getBasePositionAndOrientation(self.goalUid)
         #show the inverse transformed matrix
@@ -134,8 +151,10 @@ class NeobotixSchunkGymEnv(gym.Env):
         p.disconnect()
 
     def _step(self, action):
+        p_scale = 0.01
+        action_scaled = np.multiply(action, self._action_bound * p_scale)
         for i in range(self._actionRepeat):
-            self._neobotixschunk.applyAction(action)
+            self._neobotixschunk.applyAction2(action_scaled)
             p.stepSimulation()
             if self._termination():
                 break
@@ -151,21 +170,28 @@ class NeobotixSchunkGymEnv(gym.Env):
         return np.array(self._observation), reward, done, {}
 
     def _termination(self):
-        state = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
-        actualEndEffectorPos = state[0]
+        self._observation = self.getExtendedObservation()
+        # state = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
+        # actualEndEffectorPos = state[0]
 
-        if (self.terminated or self._envStepCounter > self._maxSteps):
-            self._observation = self.getExtendedObservation()
+        if self._terminated or (self._envStepCounter > self._maxSteps):
+            # self._observation = self.getExtendedObservation()
             return True
 
-        disvec = [x - y for x, y in zip(actualEndEffectorPos, self.goal)]
+        disvec = np.subtract(self._observation[0:3], self.goal)
+        self.ee_dis = np.linalg.norm(disvec)
         #calculate the linear algebra normiert distance
         dis = np.linalg.norm(disvec)
 
-        if dis < 0.1:
-            self.terminated = 1
-            self._observation = self.getExtendedObservation()
-            print('terminate:', self._observation, dis, self.goal)
+        #base and goal distance
+        bdisvec = np.subtract(self._observation[6:8], self.goal[0:2])
+        self.base_dis = np.linalg.norm(bdisvec)
+
+        if self.ee_dis < 0.05:
+            self._terminated = 1
+            self._count += 1
+            # self._observation = self.getExtendedObservation()
+            print('terminate:', self._observation, self.ee_dis, self.goal)
             return True
 
         return False
@@ -179,14 +205,23 @@ class NeobotixSchunkGymEnv(gym.Env):
     #     if (numPt > 0):
     #         reward = -closestPoints[0][8]  # contact distance
     #     return reward
-        state = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
-        actualEndEffectorPos = state[0]
-        disvec = [x - y for x, y in zip(actualEndEffectorPos, self.goal)]
-        self.dis = np.linalg.norm(disvec)
-        delta_dis = self.dis - self._dis_vor
-        self._dis_vor = self.dis
+    #     state = p.getLinkState(self._neobotixschunk.neobotixschunkUid, self._neobotixschunk.neobotixschunkEndEffectorIndex)
+    #     actualEndEffectorPos = state[0]
+    #     disvec = [x - y for x, y in zip(actualEndEffectorPos, self.goal)]
+    #     self.dis = np.linalg.norm(disvec)
+        delta_dis = self.ee_dis - self._dis_vor
+        self._dis_vor = self.ee_dis
+
+        tau = (self.ee_dis / self.dis_init) ** 2 #power
+        if tau > 1:
+            penalty = (1 - tau) * self.ee_dis + self._envStepCounter / self._maxSteps / 2
+        else:
+            penalty = self._envStepCounter / self._maxSteps / 2
+
         if self._rewardtype == 'rdense':
-            reward = -self.dis - np.linalg.norm(self._actions)
+            reward = (1-tau)*self.ee_dis + tau*self.base_dis - penalty
+            reward = -reward
+
         elif self._rewardtype == 'rsparse':
             if delta_dis > 0:
                 reward = 0
