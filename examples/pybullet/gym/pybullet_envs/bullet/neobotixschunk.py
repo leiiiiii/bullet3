@@ -126,77 +126,7 @@ class NeobotixSchunk:
         return jointstate
 
     def applyAction(self, action):
-        # dtargetVelocityL = action[0]
-        # dtargetVelocityR = action[1]
-        # targetvelocity=[dtargetVelocityL,dtargetVelocityR]
-        # print('targetVelocity=',targetvelocity)
-        # djoint_1 = action[2]
-        # djoint_2 = action[3]
-        # djoint_3 = action[4]
-        # djoint_4 = action[5]
-        # djoint_5 = action[6]
-        # djoint_6 = action[7]
 
-        dbasevelocity = action[0]
-        dbaseangulervelocity = action[1]
-        djoint=np.array(action[2:9])
-
-        if self.useSimulation:
-            baseve, baseva = p.getBaseVelocity(self.neobotixschunkUid)
-            self.basevelocity = baseve[0]
-            self.baseangulervelocity = baseva[2]
-            dae = []
-            for joint in self.joints:
-                self.Jointstate = p.getJointState(self.neobotixschunkUid, joint)
-                self.jointstate = self.Jointstate[0]
-                dae.append(self.jointstate)
-            self.jointposition = dae
-
-
-        self.basevelocity = self.basevelocity + dbasevelocity
-        self.baseangulervelocity = self.baseangulervelocity + dbaseangulervelocity
-
-        self.basevelocity = self.check_baseV(self.basevelocity, dbasevelocity)
-        self.baseangulervelocity = self.check_baseA(self.baseangulervelocity, dbaseangulervelocity)
-
-        self.wheelVelR = ( self.basevelocity + 0.2535 * self.baseangulervelocity) / 0.13
-        self.wheelVelL = ( self.basevelocity - 0.2535 * self.baseangulervelocity) / 0.13
-
-        self.wheelstate = [self.wheelVelL, self.wheelVelR]
-        # dwe = []
-        # for joint in self.wheels:
-        #     self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
-        #     self.wheelstate = self.Wheelstate[1]
-        #     dwe.append(self.wheelstate)
-
-        # dwl = dtargetVelocityL+dwe[0]
-        # dwr = dtargetVelocityR+dwe[1]
-        # self.wheelstate= [dwl,dwr]
-
-
-
-        # print('dae',dae)
-        # da_1 = djoint_1+dae[0]
-        # da_2 = djoint_2+dae[1]
-        # da_3 = djoint_3+dae[2]
-        # da_4 = djoint_4+dae[3]
-        # da_5 = djoint_5+dae[4]
-        # da_6 = djoint_6+dae[5]
-        # da_7 = djoint_7+dae[6]
-        # self.jointstate= [da_1,da_2,da_3,da_4,da_5,da_6,da_7]
-        self.jointposition= self.jointposition + djoint
-        self.jointposition = self.check_jointstate(self.jointposition, djoint)
-
-        # print('targetAngle=', targetangle)
-        for motor in self.wheels:
-            p.setJointMotorControl2(self.neobotixschunkUid, motor,p.VELOCITY_CONTROL,
-                                          targetVelocity=self.wheelstate[motor], force=self.maxForce)
-        for motor_2 in self.joints:
-            p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
-                                          targetPosition=self.jointposition[motor_2-6],force=self.maxForce)
-
-
-    def applyAction2(self, action):
         dbasevelocity = action[0]
         dbaseangulervelocity = action[1]
         self.basevelocity = self.basevelocity + dbasevelocity
@@ -210,8 +140,7 @@ class NeobotixSchunk:
 
         self.wheelstate = [self.wheelVelL, self.wheelVelR]
 
-        if (self.useInverseKinematics):
-            # change of endeffector position
+        if (self.useInverseKinematics==1):
             dx = action[2]
             dy = action[3]
             dz = action[4]
@@ -234,12 +163,53 @@ class NeobotixSchunk:
                                                               jointDamping=self.jd)
                 else:
                     jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position)
-        # print("jointPoses")
-        # print(jointPoses)
+                # print("jointPoses")
+                # print(jointPoses)
 
-        for motor in self.wheels:
-            p.setJointMotorControl2(self.neobotixschunkUid, motor, p.VELOCITY_CONTROL,
+            for motor in self.wheels:
+                p.setJointMotorControl2(self.neobotixschunkUid, motor, p.VELOCITY_CONTROL,
                                         targetVelocity=self.wheelstate[motor], force=self.maxForce)
-        for motor_2 in self.joints:
-            p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
+            for motor_2 in self.joints:
+                p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
                                         targetPosition=jointPoses[motor_2-4 ], force=self.maxForce)
+
+        else:
+
+            djoint=np.array(action[2:9])
+
+            if self.useSimulation:
+                baseve, baseva = p.getBaseVelocity(self.neobotixschunkUid)
+                self.basevelocity = baseve[0]
+                self.baseangulervelocity = baseva[2]
+                dae = []
+                for joint in self.joints:
+                    self.Jointstate = p.getJointState(self.neobotixschunkUid, joint)
+                    self.jointstate = self.Jointstate[0]
+                    dae.append(self.jointstate)
+                self.jointposition = dae
+
+
+
+        # dwe = []
+        # for joint in self.wheels:
+        #     self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
+        #     self.wheelstate = self.Wheelstate[1]
+        #     dwe.append(self.wheelstate)
+
+        # dwl = dtargetVelocityL+dwe[0]
+        # dwr = dtargetVelocityR+dwe[1]
+        # self.wheelstate= [dwl,dwr]
+
+            self.jointposition= self.jointposition + djoint
+            self.jointposition = self.check_jointstate(self.jointposition, djoint)
+
+        # print('targetAngle=', targetangle)
+            for motor in self.wheels:
+                p.setJointMotorControl2(self.neobotixschunkUid, motor,p.VELOCITY_CONTROL,
+                                          targetVelocity=self.wheelstate[motor], force=self.maxForce)
+            for motor_2 in self.joints:
+                p.setJointMotorControl2(self.neobotixschunkUid, motor_2, p.POSITION_CONTROL,
+                                          targetPosition=self.jointposition[motor_2-6],force=self.maxForce)
+
+
+

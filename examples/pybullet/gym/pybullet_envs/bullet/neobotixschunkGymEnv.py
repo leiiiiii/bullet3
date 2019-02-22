@@ -41,6 +41,7 @@ class NeobotixSchunkGymEnv(gym.Env):
                  actionRepeat=50,
                  isEnableSelfCollision=True,
                  isDiscrete=False,
+                 useInversekinematics = True,
                  renders=False,
                  maxSteps=1000,
                  rewardtype='rdense'):
@@ -55,6 +56,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._rewardtype = rewardtype
         self._maxSteps = maxSteps
         self._isDiscrete = isDiscrete
+        self._useInversekinematics = useInversekinematics
         self._terminated = 0
         self._cam_dist = 1.3
         self._cam_yaw = 180
@@ -154,7 +156,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         p_scale = 0.01
         action_scaled = np.multiply(action, self._action_bound * p_scale)
         for i in range(self._actionRepeat):
-            self._neobotixschunk.applyAction2(action_scaled)
+            self._neobotixschunk.applyAction(action_scaled)
             p.stepSimulation()
             if self._termination():
                 break
