@@ -23,7 +23,6 @@ class NeobotixSchunk:
         self.maxForce = 100
         self.useSimulation = 1
         self.useNullSpace = 0
-        self.useOrientation = 1
         self.useInverseKinematics = 1
         self.neobotixschunkEndEffectorIndex = 13
         self.wheels = [0, 1]
@@ -144,25 +143,19 @@ class NeobotixSchunk:
             dx = action[2]
             dy = action[3]
             dz = action[4]
-            self.endEffectorPos[0] = self.endEffectorPos[0] + dx
-            self.endEffectorPos[1] = self.endEffectorPos[1] + dy
-            self.endEffectorPos[2] = self.endEffectorPos[2] + dz
-            position = self.endEffectorPos
-            orientation = p.getQuaternionFromEuler([0, -math.pi, 0])
+            endstate = p.getLinkState(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex)
+            actualposition=list(endstate[0])
+            actualposition[0] = actualposition[0] + dx
+            actualposition[1] = actualposition[1] + dy
+            actualposition[2] = actualposition[2] + dz
+            position = actualposition
             if (self.useNullSpace == 1):
-                if (self.useOrientation == 1):
-                    jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position, orientation,
-                                                              self.ll, self.ul, self.jr, self.rp)
-                else:
-                    jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position,
+                jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position,
                                                               lowerLimits=self.ll, upperLimits=self.ul,
                                                               jointRanges=self.jr, restPoses=self.rp)
             else:
-                if (self.useOrientation == 1):
-                    jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position, orientation,
-                                                              jointDamping=self.jd)
-                else:
-                    jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position)
+
+                jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position)
                 # print("jointPoses")
                 # print(jointPoses)
 
