@@ -41,7 +41,7 @@ class NeobotixSchunkGymEnv(gym.Env):
                  actionRepeat=50,
                  isEnableSelfCollision=True,
                  isDiscrete=False,
-                 useInversekinematics = True,
+                 useInversekinematics = False,
                  renders=False,
                  maxSteps=1000,
                  rewardtype='rdense'):
@@ -58,9 +58,9 @@ class NeobotixSchunkGymEnv(gym.Env):
         self._isDiscrete = isDiscrete
         self._useInversekinematics = useInversekinematics
         self._terminated = 0
-        self._cam_dist = 1.3
+        self._cam_dist = 3
         self._cam_yaw = 180
-        self._cam_pitch = -40
+        self._cam_pitch = -45
         self._p = p
         self._dis_vor = 100
         self._count = 0
@@ -107,8 +107,8 @@ class NeobotixSchunkGymEnv(gym.Env):
         d_space_scale = len(str(abs(self._count))) * 0.5
         print('scale here: ', self._count, d_space_scale, self._maxSteps)
 
-        xpos = np.random.uniform(-d_space_scale, d_space_scale)+0.20
-        ypos = np.random.uniform(-d_space_scale, d_space_scale)
+        xpos = np.random.uniform(0, 1)+0.20
+        ypos = np.random.uniform(0, 1)
         zpos = np.random.uniform(0.4, 1.3)
         self.goal = np.array([xpos, ypos, zpos])
 
@@ -145,15 +145,17 @@ class NeobotixSchunkGymEnv(gym.Env):
         # print('goalPosInEndeffector',goalPosInEndeffector)
         goalInEndeffectorPosXYEulZ = [goalPosInEndeffector[0], goalPosInEndeffector[1], goalPosInEndeffector[2]]
         #at end of list is relative coordinate system (goal location in endeffector position)
-        self._observation.extend(list(goalInEndeffectorPosXYEulZ))
+        # self._observation.extend(list(goalInEndeffectorPosXYEulZ))
         return self._observation
 
 
     def __del__(self):
         p.disconnect()
 
+
     def _step(self, action):
-        p_scale = 0.01
+        # p_scale = 0.01
+        p_scale = 0.1
         action_scaled = np.multiply(action, self._action_bound * p_scale)
         for i in range(self._actionRepeat):
             self._neobotixschunk.applyAction(action_scaled)
@@ -183,7 +185,7 @@ class NeobotixSchunkGymEnv(gym.Env):
         disvec = np.subtract(self._observation[0:3], self.goal)
         self.ee_dis = np.linalg.norm(disvec)
         #calculate the linear algebra normiert distance
-        dis = np.linalg.norm(disvec)
+        # dis = np.linalg.norm(disvec)
 
         #base and goal distance
         bdisvec = np.subtract(self._observation[6:8], self.goal[0:2])
@@ -230,6 +232,15 @@ class NeobotixSchunkGymEnv(gym.Env):
             else:
                 reward = 1
         return reward
+
+    def _sample_action(self):
+        if not self._isDiscrete:
+            if self._useInversekinematics == False:
+                d = 1
+                action = np.array([np.random.uniform(-d, d), np.random.uniform(-d, d), np.random.uniform(-d, d),
+                                   np.random.uniform(-d, d), np.random.uniform(-d, d), np.random.uniform(-d, d),
+                                   np.random.uniform(-d, d), np.random.uniform(-d, d), np.random.uniform(-d, d)])
+        return action
 
     def _render(self, mode='human', close=False):
         if mode != "rgb_array":

@@ -23,8 +23,8 @@ class NeobotixSchunk:
         self.maxForce = 100
         self.useSimulation = 1
         self.useNullSpace = 0
-        self.useInverseKinematics = 1
-        self.neobotixschunkEndEffectorIndex = 13
+        self.useInverseKinematics = 0
+        self.neobotixschunkEndEffectorIndex=13
         self.wheels = [0, 1]
         self.joints = [6, 7, 8, 9, 10, 11, 12]
         self.j1_limit = 3.1415  # limits for arm link 1, 3, 5
@@ -74,7 +74,7 @@ class NeobotixSchunk:
     def getObservationDimension(self):
         return len(self.getObservation())
 
-    #get the endeffector position and orientation(euler angles)
+    #observe the endeffector and base position and orientation(euler angles)
     def getObservation(self):
         observation = []
         state = p.getLinkState(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex)
@@ -134,8 +134,8 @@ class NeobotixSchunk:
         self.basevelocity = self.check_baseV(self.basevelocity, dbasevelocity)
         self.baseangulervelocity = self.check_baseA(self.baseangulervelocity, dbaseangulervelocity)
 
-        self.wheelVelR = (self.basevelocity + 0.2535 * self.baseangulervelocity) / 0.13
-        self.wheelVelL = (self.basevelocity - 0.2535 * self.baseangulervelocity) / 0.13
+        self.wheelVelR = (self.basevelocity + 0.2535 * self.baseangulervelocity) / 0.13 * 0.05
+        self.wheelVelL = (self.basevelocity - 0.2535 * self.baseangulervelocity) / 0.13 * 0.05
 
         self.wheelstate = [self.wheelVelL, self.wheelVelR]
 
@@ -145,10 +145,13 @@ class NeobotixSchunk:
             dz = action[4]
             endstate = p.getLinkState(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex)
             actualposition=list(endstate[0])
+            # print 'ee pos:', actualposition
             actualposition[0] = actualposition[0] + dx
             actualposition[1] = actualposition[1] + dy
             actualposition[2] = actualposition[2] + dz
             position = actualposition
+
+            # print 'ee pos2:', position
             if (self.useNullSpace == 1):
                 jointPoses = p.calculateInverseKinematics(self.neobotixschunkUid, self.neobotixschunkEndEffectorIndex, position,
                                                               lowerLimits=self.ll, upperLimits=self.ul,
@@ -170,28 +173,16 @@ class NeobotixSchunk:
 
             djoint=np.array(action[2:9])
 
-            if self.useSimulation:
-                baseve, baseva = p.getBaseVelocity(self.neobotixschunkUid)
-                self.basevelocity = baseve[0]
-                self.baseangulervelocity = baseva[2]
-                dae = []
-                for joint in self.joints:
-                    self.Jointstate = p.getJointState(self.neobotixschunkUid, joint)
-                    self.jointstate = self.Jointstate[0]
-                    dae.append(self.jointstate)
-                self.jointposition = dae
-
-
-
-        # dwe = []
-        # for joint in self.wheels:
-        #     self.Wheelstate = p.getJointState(self.neobotixschunkUid, joint)
-        #     self.wheelstate = self.Wheelstate[1]
-        #     dwe.append(self.wheelstate)
-
-        # dwl = dtargetVelocityL+dwe[0]
-        # dwr = dtargetVelocityR+dwe[1]
-        # self.wheelstate= [dwl,dwr]
+            # if self.useSimulation:
+            #     baseve, baseva = p.getBaseVelocity(self.neobotixschunkUid)
+            #     self.basevelocity = baseve[0]
+            #     self.baseangulervelocity = baseva[2]
+            dae = []
+            for joint in self.joints:
+                self.Jointstate = p.getJointState(self.neobotixschunkUid, joint)
+                self.jointstate = self.Jointstate[0]
+                dae.append(self.jointstate)
+            self.jointposition = dae
 
             self.jointposition= self.jointposition + djoint
             self.jointposition = self.check_jointstate(self.jointposition, djoint)
